@@ -22,19 +22,23 @@ impl<TNodeInfo> Node<TNodeInfo> {
         return self.id;
     }
 
-    pub fn get_adjacent_nodes(&self) -> &HashMap<u32, HashSet<u32>> {
+    pub fn degree(&self) -> usize {
+        return self.connected_edges.len();
+    }
+
+    pub fn adjacent_nodes(&self) -> &HashMap<u32, HashSet<u32>> {
         return &self.adjacent_nodes;
     }
 
-    pub fn get_connected_edges(&self) -> &HashMap<u32, u32> {
+    pub fn connected_edges(&self) -> &HashMap<u32, u32> {
         return &self.connected_edges;
     }
 
-    pub fn get_node_info(&self) -> &TNodeInfo {
+    pub fn node_info(&self) -> &TNodeInfo {
         return &self.node_info;
     }
 
-    pub fn get_node_info_mut(&mut self) -> &mut TNodeInfo {
+    pub fn node_info_mut(&mut self) -> &mut TNodeInfo {
         return &mut self.node_info;
     }
 

@@ -185,7 +185,7 @@ impl<TNodeInfo, TEdgeInfo> Graph<TNodeInfo, TEdgeInfo> {
 
         // Build list of entities adjacent to removed node.
         let mut rm_list: LinkedList<(u32, u32)> = LinkedList::new();
-        for (rm_edge, rm_node) in removed_node.get_connected_edges().iter() {
+        for (rm_edge, rm_node) in removed_node.connected_edges().iter() {
             rm_list.push_back((*rm_edge, *rm_node));
         }
 
@@ -209,13 +209,13 @@ impl<TNodeInfo, TEdgeInfo> Graph<TNodeInfo, TEdgeInfo> {
             None => return Err(GraphError::NoSuchEdge),
         };
 
-        let n1 = match self.nodes.get_mut(&removed_edge.get_node1()) {
+        let n1 = match self.nodes.get_mut(&removed_edge.node1()) {
             Some(n) => n,
             None => return Err(GraphError::NoSuchNode),
         };
         n1.remove_connection(*edge_id);
 
-        let n2 = match self.nodes.get_mut(&removed_edge.get_node2()) {
+        let n2 = match self.nodes.get_mut(&removed_edge.node2()) {
             Some(n) => n,
             None => return Err(GraphError::NoSuchNode),
         };

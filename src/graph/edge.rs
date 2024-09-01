@@ -31,11 +31,11 @@ impl<TEdgeInfo> Edge<TEdgeInfo> {
         return self.id;
     }
 
-    pub fn get_node1(&self) -> u32 {
+    pub fn node1(&self) -> u32 {
         return self.node1;
     }
 
-    pub fn get_node2(&self) -> u32 {
+    pub fn node2(&self) -> u32 {
         return self.node2;
     }
 
@@ -47,7 +47,11 @@ impl<TEdgeInfo> Edge<TEdgeInfo> {
         return self.can_move_backward;
     }
 
-    pub fn get_edge_info(&self) -> &TEdgeInfo {
+    pub fn edge_info(&self) -> &TEdgeInfo {
         return &self.edge_info;
+    }
+
+    pub fn edge_info_mut(&mut self) -> &mut TEdgeInfo {
+        return &mut self.edge_info;
     }
 }
