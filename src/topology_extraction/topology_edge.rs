@@ -8,13 +8,9 @@ impl TopologyEdge {
         let mut length = 0_f64;
 
         for i in 1..waypoints.len() {
-            let (x_prev, y_prev) = waypoints.get(i - 1).unwrap();
-            let (x_curr, y_curr) = waypoints.get(i).unwrap();
-            let _x_prev = *x_prev as f64;
-            let _y_prev = *y_prev as f64;
-            let _x_curr = *x_curr as f64;
-            let _y_curr = *y_curr as f64;
-            let dist = ((_x_curr - _x_prev).powi(2) + (_y_curr - _y_prev).powi(2)).sqrt();
+            let (x1, y1) = waypoints.get(i - 1).unwrap().clone();
+            let (x2, y2) = waypoints.get(i).unwrap().clone();
+            let dist = ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt();
             length += dist;
         }
 

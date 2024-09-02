@@ -5,7 +5,8 @@ use ndarray::Array2;
 use crate::{graph::graph::Graph, numerics::vector2d::Vector2D};
 
 use super::{
-    topology_edge::TopologyEdge, topology_node::TopologyNode, topology_node_type::TopologyNodeType,
+    topology_edge::TopologyEdge,
+    topology_node::{TopologyNode, TopologyNodeType},
 };
 
 type TopologyMap = Graph<TopologyNode, TopologyEdge>;
