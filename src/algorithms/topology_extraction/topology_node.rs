@@ -1,7 +1,8 @@
+use crate::numerics::{vector2d::Vector2D, vector2i::Vector2I};
+
 use super::topology_node_type::TopologyNodeType;
 
 pub struct TopologyNode {
     pub node_type: TopologyNodeType,
-    pub x: f64,
-    pub y: f64,
+    pub position: Vector2D,
 }

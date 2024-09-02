@@ -2,7 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use ndarray::Array2;
 
-use crate::graph::graph::Graph;
+use crate::{graph::graph::Graph, numerics::vector2d::Vector2D};
 
 use super::{
     topology_edge::TopologyEdge, topology_node::TopologyNode, topology_node_type::TopologyNodeType,
@@ -88,8 +88,7 @@ impl TopologyExtractor {
                 if score <= 1 {
                     let node_id = topology_map.add_node(TopologyNode {
                         node_type: TopologyNodeType::Endpoint,
-                        x: x as f64,
-                        y: y as f64,
+                        position: Vector2D::from_xy(x as f64, y as f64),
                     });
                     self.bfs_queue.push_back(BfsData {
                         pos: (x, y),
@@ -99,8 +98,7 @@ impl TopologyExtractor {
                 } else if score >= 3 {
                     let node_id = topology_map.add_node(TopologyNode {
                         node_type: TopologyNodeType::Intersection,
-                        x: x as f64,
-                        y: y as f64,
+                        position: Vector2D::from_xy(x as f64, y as f64),
                     });
                     self.bfs_queue.push_back(BfsData {
                         pos: (x, y),
@@ -132,29 +130,20 @@ impl TopologyExtractor {
             }
         }
 
-        self.bfs_worker(
-            &mut exploration_map,
-            &mut unvisited_cells,
-            topology_map,
-        );
+        self.bfs_worker(&mut exploration_map, &mut unvisited_cells, topology_map);
 
         while !unvisited_cells.is_empty() {
             let root_pos = unvisited_cells.iter().next().unwrap();
             let node_id = topology_map.add_node(TopologyNode {
                 node_type: TopologyNodeType::Waypoint,
-                x: root_pos.0 as f64,
-                y: root_pos.1 as f64,
+                position: Vector2D::from_xy(root_pos.0 as f64, root_pos.1 as f64),
             });
             self.bfs_queue.push_back(BfsData {
                 root_node: node_id,
                 pos: *root_pos,
                 prev_pos: *root_pos,
             });
-            self.bfs_worker(
-                &mut exploration_map,
-                &mut unvisited_cells,
-                topology_map,
-            );
+            self.bfs_worker(&mut exploration_map, &mut unvisited_cells, topology_map);
         }
     }
 

@@ -9,6 +9,10 @@ pub struct Vector2D {
 }
 
 impl Vector2D {
+    pub fn from_xy(x: f64, y: f64) -> Self {
+        return Self { x: x, y: y };
+    }
+
     pub fn zero() -> Self {
         return Self { x: 0_f64, y: 0_f64 };
     }
