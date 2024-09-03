@@ -1,16 +1,18 @@
+use crate::math::numerics::{vector::Vector, vector2d::Vector2D};
+
 pub struct TopologyEdge {
-    waypoints: Vec<(f64, f64)>,
+    waypoints: Vec<Vector2D>,
     length: f64,
 }
 
 impl TopologyEdge {
-    pub fn from_waypoints(waypoints: Vec<(f64, f64)>) -> Self {
+    pub fn from_waypoints(waypoints: Vec<Vector2D>) -> Self {
         let mut length = 0_f64;
 
         for i in 1..waypoints.len() {
-            let (x1, y1) = waypoints.get(i - 1).unwrap().clone();
-            let (x2, y2) = waypoints.get(i).unwrap().clone();
-            let dist = ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt();
+            let p1 = waypoints.get(i - 1).unwrap().clone();
+            let p2 = waypoints.get(i).unwrap().clone();
+            let dist = (p2 - p1).magnitude();
             length += dist;
         }
 
@@ -20,7 +22,7 @@ impl TopologyEdge {
         };
     }
 
-    pub fn get_waypoints(&self) -> &Vec<(f64, f64)> {
+    pub fn get_waypoints(&self) -> &Vec<(Vector2D)> {
         return &self.waypoints;
     }
 

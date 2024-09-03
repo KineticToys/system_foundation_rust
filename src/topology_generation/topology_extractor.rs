@@ -2,7 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use ndarray::Array2;
 
-use crate::{graph::graph::Graph, numerics::vector2d::Vector2D};
+use crate::{graph::graph::Graph, math::numerics::vector2d::Vector2D};
 
 use super::{
     topology_edge::TopologyEdge,
@@ -290,7 +290,7 @@ impl TopologyExtractor {
             _other_side_pos = prev_pos;
         }
 
-        let mut waypoints: Vec<(f64, f64)> =
+        let mut waypoints: Vec<(Vector2D)> =
             Vec::with_capacity(this_side_waypoints.len() + other_side_waypoints.len());
         let lower_group: u32;
         let upper_group: u32;
@@ -300,22 +300,22 @@ impl TopologyExtractor {
             upper_group = other_side_root;
 
             for (x, y) in this_side_waypoints.iter() {
-                waypoints.push((*x as f64, *y as f64));
+                waypoints.push(Vector2D::from_xy(*x as f64, *y as f64));
             }
 
             for (x, y) in other_side_waypoints.iter().rev() {
-                waypoints.push((*x as f64, *y as f64));
+                waypoints.push(Vector2D::from_xy(*x as f64, *y as f64));
             }
         } else {
             lower_group = other_side_root;
             upper_group = this_side_root;
 
             for (x, y) in other_side_waypoints.iter() {
-                waypoints.push((*x as f64, *y as f64));
+                waypoints.push(Vector2D::from_xy(*x as f64, *y as f64));
             }
 
             for (x, y) in this_side_waypoints.iter().rev() {
-                waypoints.push((*x as f64, *y as f64));
+                waypoints.push(Vector2D::from_xy(*x as f64, *y as f64));
             }
         }
 

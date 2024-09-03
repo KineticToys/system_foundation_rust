@@ -1,5 +1,6 @@
 use system_foundation_rust::{
-    algorithms::convex_hull::convex_hull_algorithm::get_convex_hull, numerics::vector2d::Vector2D,
+    algorithms::convex_hull::convex_hull_algorithm::get_convex_hull,
+    math::numerics::vector2d::Vector2D,
 };
 
 fn main() {

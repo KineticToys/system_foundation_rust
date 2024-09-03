@@ -99,6 +99,7 @@ impl<TNodeInfo, TEdgeInfo> Graph<TNodeInfo, TEdgeInfo> {
         return Graph::from_entities(_nodes, _edges, assume_bidirectional);
     }
 
+    /// Add node and return its ID.
     pub fn add_node(&mut self, node_info: TNodeInfo) -> u32 {
         let node_id = self.node_id_alloc;
         self.node_id_alloc += 1;
@@ -107,6 +108,7 @@ impl<TNodeInfo, TEdgeInfo> Graph<TNodeInfo, TEdgeInfo> {
         return node_id;
     }
 
+    /// Add edge and return its ID.
     pub fn add_edge(
         &mut self,
         node1_id: u32,

@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Mul, Sub};
 
-use super::vector::Vector;
+use super::{vector::Vector, vector2d::Vector2D};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector3D {
@@ -232,5 +232,11 @@ impl Div<f64> for &Vector3D {
             y: self.y / rhs,
             z: self.z / rhs,
         };
+    }
+}
+
+impl From<Vector2D> for Vector3D {
+    fn from(value: Vector2D) -> Self {
+        return Vector3D::from_xy(value.x, value.y);
     }
 }

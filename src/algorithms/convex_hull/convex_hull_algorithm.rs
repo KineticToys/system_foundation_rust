@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::LinkedList, iter::zip};
 
-use crate::numerics::{vector2d::Vector2D, vector3d::Vector3D};
+use crate::math::numerics::{vector2d::Vector2D, vector3d::Vector3D};
 
 pub fn get_convex_hull(points: &[Vector2D]) -> Result<Vec<Vector2D>, ()> {
     if points.len() < 3 {
