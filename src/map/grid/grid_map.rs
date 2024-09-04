@@ -1,3 +1,6 @@
+use std::io;
+
+use image::{imageops, ColorType, ImageReader};
 use ndarray::Array2;
 
 pub struct GridMap {
@@ -11,6 +14,24 @@ impl GridMap {
             cells: Array2::from_shape_fn((height, width), |(_, _)| GridMapCell::new(state)),
             cell_size: cell_size,
         };
+    }
+
+    pub fn from_image(
+        image_path: &str,
+        occupied_region_color: OccupiedRegionColor,
+        threshold: u8,
+    ) -> Result<Self, GridMapError> {
+        let image_reader = match ImageReader::open(image_path) {
+            Ok(reader) => reader,
+            Err(_) => return Err(GridMapError::ImageNotFound),
+        };
+        let raw_image = match image_reader.decode() {
+            Ok(img) => img,
+            Err(_) => return Err(GridMapError::ImageDecodeFailed),
+        };
+
+        let grayscale_image = imageops::colorops::grayscale(&raw_image);
+        todo!();
     }
 
     pub fn get_by_cell(&self, row: usize, column: usize) -> Option<&GridMapCell> {
@@ -59,4 +80,15 @@ impl GridMapCell {
 pub enum CellState {
     Vacant,
     Occupied,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum OccupiedRegionColor {
+    White,
+    Black,
+}
+
+pub enum GridMapError {
+    ImageNotFound,
+    ImageDecodeFailed,
 }
