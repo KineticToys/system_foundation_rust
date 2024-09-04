@@ -88,21 +88,3 @@ impl WaypointSimplifier {
         *divisions.get_mut(max_deviation_index.unwrap()).unwrap() = true;
     }
 }
-
-struct DfsData {
-    pub start_index: usize,
-    pub end_index: usize,
-    pub left_max_deviation_index: Option<usize>,
-    pub right_max_deviation_index: Option<usize>,
-}
-
-impl DfsData {
-    pub fn new(start_index: usize, end_index: usize) -> Self {
-        return Self {
-            start_index: start_index,
-            end_index: end_index,
-            left_max_deviation_index: None,
-            right_max_deviation_index: None,
-        };
-    }
-}

@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+image = "0.25.2"
 ndarray = "0.15.6"
 
 [features]
@@ -13,3 +14,4 @@ parcel = []
 graph = []
 topology_extraction = ["zhang_suen_thinning", "graph"]
 zhang_suen_thinning = []
+map = []

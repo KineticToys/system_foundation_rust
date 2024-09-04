@@ -4,7 +4,7 @@ pub mod enums;
 pub mod geometry;
 #[cfg(feature = "graph")]
 pub mod graph;
+#[cfg(feature = "map")]
+pub mod map;
 pub mod math;
 pub mod peripherals;
-#[cfg(feature = "topology_extraction")]
-pub mod topology_generation;

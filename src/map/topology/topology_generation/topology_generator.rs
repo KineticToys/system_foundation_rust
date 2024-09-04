@@ -25,7 +25,9 @@ impl TopologyGenerator {
     }
 
     pub fn generate_topology(&mut self, occupancy_map: &Array2<bool>) -> TopologyMap {
-        todo!();
+        let temp_map = self.extract_topology(occupancy_map);
+        let topology_map = self.simplify_topology(&temp_map);
+        return topology_map;
     }
 
     fn extract_topology(&mut self, occupancy_map: &Array2<bool>) -> TopologyMap {
