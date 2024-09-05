@@ -20,6 +20,7 @@ impl GridMap {
         image_path: &str,
         occupied_region_color: OccupiedRegionColor,
         threshold: u8,
+        cell_size: f64,
     ) -> Result<Self, GridMapError> {
         let image_reader = match ImageReader::open(image_path) {
             Ok(reader) => reader,
@@ -31,7 +32,28 @@ impl GridMap {
         };
 
         let grayscale_image = imageops::colorops::grayscale(&raw_image);
-        todo!();
+        let (image_width, image_height) = grayscale_image.dimensions();
+
+        let cells: Array2<GridMapCell> =
+            Array2::from_shape_fn((image_height as usize, image_width as usize), |(r, c)| {
+                let pixel_value = grayscale_image.get_pixel(c as u32, r as u32).0[0];
+                let cell_state: CellState;
+                if occupied_region_color == OccupiedRegionColor::Black && pixel_value < threshold
+                    || occupied_region_color == OccupiedRegionColor::White
+                        && pixel_value > threshold
+                {
+                    cell_state = CellState::Occupied;
+                } else {
+                    cell_state = CellState::Vacant;
+                }
+
+                return GridMapCell { state: cell_state };
+            });
+
+        return Ok(Self {
+            cells: cells,
+            cell_size: cell_size,
+        });
     }
 
     pub fn get_by_cell(&self, row: usize, column: usize) -> Option<&GridMapCell> {
@@ -88,6 +110,7 @@ pub enum OccupiedRegionColor {
     Black,
 }
 
+#[derive(Clone, Copy, Debug)]
 pub enum GridMapError {
     ImageNotFound,
     ImageDecodeFailed,

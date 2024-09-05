@@ -2,12 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use ndarray::Array2;
 
-use crate::{graph::graph::Graph, math::numerics::vector2d::Vector2D};
-
-use super::{
-    topology_edge::TopologyEdge,
-    topology_node::{TopologyNode, TopologyNodeType},
-};
+use crate::{graph::graph::Graph, map::topology::{topology_edge::TopologyEdge, topology_node::{TopologyNode, TopologyNodeType}}, math::numerics::vector2d::Vector2D};
 
 type TopologyMap = Graph<TopologyNode, TopologyEdge>;
 

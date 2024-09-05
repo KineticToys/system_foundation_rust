@@ -2,12 +2,9 @@ use std::collections::HashMap;
 
 use ndarray::Array2;
 
-use crate::graph::graph::Graph;
+use crate::{graph::graph::Graph, map::topology::{topology_edge::TopologyEdge, topology_node::TopologyNode}};
 
-use super::{
-    topology_edge::TopologyEdge, topology_extractor::TopologyExtractor,
-    topology_node::TopologyNode, waypoint_simplifier::WaypointSimplifier,
-};
+use super::{topology_extractor::TopologyExtractor, waypoint_simplifier::WaypointSimplifier};
 
 type TopologyMap = Graph<TopologyNode, TopologyEdge>;
 

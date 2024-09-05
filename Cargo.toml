@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 image = "0.25.2"
+imageproc = "0.25.0"
 ndarray = "0.15.6"
 
 [features]
@@ -14,4 +15,4 @@ parcel = []
 graph = []
 topology_extraction = ["zhang_suen_thinning", "graph"]
 zhang_suen_thinning = []
-map = []
+map = ["graph"]

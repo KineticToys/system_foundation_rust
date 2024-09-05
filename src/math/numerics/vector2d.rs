@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Mul, Sub};
 
-use super::vector::Vector;
+use super::{vector::Vector, vector2i::Vector2I};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector2D {
@@ -201,5 +201,17 @@ impl Div<f64> for &Vector2D {
             x: self.x / rhs,
             y: self.y / rhs,
         };
+    }
+}
+
+impl Into<Vector2I> for Vector2D {
+    fn into(self) -> Vector2I {
+        return Vector2I::from_xy(self.x as i64, self.y as i64);
+    }
+}
+
+impl Into<Vector2I> for &Vector2D {
+    fn into(self) -> Vector2I {
+        return Vector2I::from_xy(self.x as i64, self.y as i64);
     }
 }
