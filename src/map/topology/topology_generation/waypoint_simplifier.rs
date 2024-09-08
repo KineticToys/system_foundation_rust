@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::math::{
     geometry::geometry_solver::GeometrySolver,
-    numerics::{vector2d::Vector2D, vector3d::Vector3D},
+    numerics::{vector::Vector, vector2d::Vector2D, vector3d::Vector3D},
 };
 
 pub struct WaypointSimplifier {
@@ -22,6 +22,8 @@ impl WaypointSimplifier {
         }
 
         let mut divisions: Vec<bool> = vec![false; waypoints.len()];
+        *divisions.first_mut().unwrap() = true;
+        *divisions.last_mut().unwrap() = true;
         self.simplify_dfs(waypoints, &mut divisions, 0, waypoints.len() - 1);
 
         let simplified: Vec<Vector2D> = waypoints
@@ -39,23 +41,66 @@ impl WaypointSimplifier {
         divisions: &mut Vec<bool>,
         start_index: usize,
         end_index: usize,
-    ) {
+    ) -> Option<usize> {
         if end_index - start_index < 2 {
-            return;
+            return None;
         }
 
+        let (max_deviation_index, max_deviation) = match self.find_max_deviation(waypoints, start_index, end_index) {
+            Some(p) => p,
+            None => return None,
+        };
+
+        // Find the deviation point on the left side.
+        let left_dev = self.simplify_dfs(
+            waypoints,
+            divisions,
+            start_index,
+            max_deviation_index,
+        );
+
+        // Find the deviation point on the left side.
+        let right_dev = self.simplify_dfs(
+            waypoints,
+            divisions,
+            max_deviation_index,
+            end_index,
+        );
+
+        if left_dev.is_some() && right_dev.is_some() {}
+
+        *divisions.get_mut(max_deviation_index).unwrap() = true;
+        return Some(max_deviation_index);
+    }
+
+    fn find_max_deviation(
+        &self,
+        points: &Vec<Vector2D>,
+        start_index: usize,
+        end_index: usize,
+    ) -> Option<(usize, f64)> {
         let solver = GeometrySolver::new(1e-9);
+        let mut max_deviation_pair: Option<(usize, f64)> = None;
         let mut max_deviation = 0_f64;
         let mut max_deviation_index: Option<usize> = None;
 
-        // Find the index of point where has maximum deviation on this level.
-        for i in (start_index + 1)..=(end_index + 1) {
-            let (distance, _) = solver.point_to_line_distance(
-                &waypoints.get(i).unwrap().clone().into(),
-                &waypoints.get(start_index).unwrap().clone().into(),
-                &waypoints.get(end_index).unwrap().clone().into(),
-                true,
-            );
+        for i in (start_index + 1)..=(end_index - 1) {
+            let point = points.get(i).unwrap().clone();
+            let start_point = points.get(start_index).unwrap().clone();
+            let end_point = points.get(end_index).unwrap().clone();
+
+            let distance = match &start_point == &end_point {
+                true => (point - start_point).magnitude(),
+                false => {
+                    let (dist, _) = solver.point_to_line_distance(
+                        &point.into(),
+                        &points.get(start_index).unwrap().clone().into(),
+                        &points.get(end_index).unwrap().clone().into(),
+                        true,
+                    );
+                    dist
+                }
+            };
 
             if distance > max_deviation && distance > self.allowed_deviation {
                 max_deviation = distance;
@@ -63,28 +108,10 @@ impl WaypointSimplifier {
             }
         }
 
-        // If no deviation point is found, return None.
-        // Given interval is approximately straight.
-        if max_deviation_index.is_none() {
-            return;
+        if max_deviation_index.is_some() {
+            return Some((max_deviation_index.unwrap(), max_deviation));
+        } else {
+            return None;
         }
-
-        // Find the deviation point on the left side.
-        self.simplify_dfs(
-            waypoints,
-            divisions,
-            start_index,
-            max_deviation_index.unwrap(),
-        );
-
-        // Find the deviation point on the left side.
-        self.simplify_dfs(
-            waypoints,
-            divisions,
-            max_deviation_index.unwrap(),
-            end_index,
-        );
-
-        *divisions.get_mut(max_deviation_index.unwrap()).unwrap() = true;
     }
 }

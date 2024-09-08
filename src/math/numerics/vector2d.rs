@@ -2,7 +2,7 @@ use std::ops::{Add, Div, Mul, Sub};
 
 use super::{vector::Vector, vector2i::Vector2I};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector2D {
     pub x: f64,
     pub y: f64,

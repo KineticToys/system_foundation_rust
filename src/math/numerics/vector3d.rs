@@ -27,7 +27,7 @@ impl Vector3D {
     }
 
     pub fn dot(&self, v: &Vector3D) -> f64 {
-        return self.x * v.x + self.y + v.y + self.z * v.z;
+        return self.x * v.x + self.y * v.y + self.z * v.z;
     }
 
     pub fn cross(&self, v: &Vector3D) -> Self {

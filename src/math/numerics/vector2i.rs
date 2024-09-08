@@ -2,7 +2,7 @@ use std::ops::{Add, Div, Mul, Sub};
 
 use super::vector::Vector;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Vector2I {
     pub x: i64,
     pub y: i64,

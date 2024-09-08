@@ -1,26 +1,34 @@
 use system_foundation_rust::{
     map::{
         grid::grid_map::{GridMap, OccupiedRegionColor},
-        io::topology_map_exporter::TopologyMapExporter,
-        topology::topology_generation::topology_extractor::TopologyExtractor,
+        io::{grid_map_exporter::GridMapExporter, topology_map_exporter::TopologyMapExporter},
+        topology::topology_generation::{
+            topology_extractor::TopologyExtractor, topology_vectorizer::TopologyVectorizer,
+        },
     },
     math::numerics::vector2i::Vector2I,
 };
 
 fn main() {
     let image_path = "example_data/kawaii-cupcake.gif";
-    let grid_map = GridMap::from_image(image_path, OccupiedRegionColor::White, 200, 1_f64)
+    let grid_map = GridMap::from_image(image_path, OccupiedRegionColor::White, 100, 1_f64)
         .expect("Failed to convert image into grid map.");
     println!("Grid map generated.");
-    let topology_extractor = TopologyExtractor::new();
-    let topology_map = topology_extractor.extract(&grid_map);
-    println!("Topology map generated.");
+    let topology_map = TopologyExtractor::extract(&grid_map);
+    let (vectorized_topology_map, node_groups) = TopologyVectorizer::vectorizer(&topology_map);
+    println!(
+        "Topology map generated: {} nodes, {} edges, {} groups.",
+        vectorized_topology_map.get_node_count(),
+        vectorized_topology_map.get_edge_count(),
+        node_groups.len()
+    );
 
+    GridMapExporter::export(&grid_map);
     TopologyMapExporter::export_topology_as_image(
         "topology_map.png",
-        &topology_map,
+        &vectorized_topology_map,
         1_f64,
         20,
-        true,
+        false,
     );
 }

@@ -69,6 +69,15 @@ impl TopologyMapExporter {
             right = f64::max(right, pos.x);
         }
 
+        for (_, edge) in topology_map.get_edges() {
+            for waypoint in edge.edge_info().get_waypoints() {
+                top = f64::max(top, waypoint.y);
+                bottom = f64::min(bottom, waypoint.y);
+                left = f64::min(left, waypoint.x);
+                right = f64::max(right, waypoint.x);
+            }
+        }
+
         return ((left, top), (right, bottom));
     }
 
@@ -81,7 +90,7 @@ impl TopologyMapExporter {
         pixel_size: f64,
     ) {
         let margin_vec = Vector2I::from_xy(margin_px as i64, margin_px as i64);
-        let bottom_left = Vector2D::from_xy(roi.1.0.clone(), roi.0.1.clone());
+        let bottom_left = Vector2D::from_xy(roi.0 .0.clone(), roi.1 .1.clone());
 
         // Convert positions into pixel coordinate.
         let _src_pos = (src_pos - bottom_left) / pixel_size;
@@ -89,11 +98,19 @@ impl TopologyMapExporter {
         let src_pixel = Vector2I::from_xy(_src_pos.x as i64, _src_pos.y as i64) + margin_vec;
         let dst_pixel = Vector2I::from_xy(_dst_pos.x as i64, _dst_pos.y as i64) + margin_vec;
 
+        // Draw line segment of edge.
+        imageproc::drawing::draw_line_segment_mut(
+            img,
+            (src_pixel.x as f32, src_pixel.y as f32),
+            (dst_pixel.x as f32, dst_pixel.y as f32),
+            Rgb([255, 255, 255]),
+        );
+
         // Draw node on src pixel.
         imageproc::drawing::draw_filled_circle_mut(
             img,
-            (src_pixel.x as i32, dst_pixel.y as i32),
-            3,
+            (src_pixel.x as i32, src_pixel.y as i32),
+            0,
             Rgb([0, 255, 0]),
         );
 
@@ -101,16 +118,8 @@ impl TopologyMapExporter {
         imageproc::drawing::draw_filled_circle_mut(
             img,
             (dst_pixel.x as i32, dst_pixel.y as i32),
-            3,
+            0,
             Rgb([0, 255, 0]),
-        );
-
-        // Draw line segment of edge.
-        imageproc::drawing::draw_line_segment_mut(
-            img,
-            (src_pixel.x as f32, src_pixel.y as f32),
-            (dst_pixel.x as f32, dst_pixel.y as f32),
-            Rgb([255, 255, 255]),
         );
     }
 
@@ -124,14 +133,14 @@ impl TopologyMapExporter {
         pixel_size: f64,
     ) {
         let margin_vec = Vector2I::from_xy(margin_px as i64, margin_px as i64);
-        let bottom_left = Vector2D::from_xy(roi.0.0.clone(), roi.1.1.clone());
+        let bottom_left = Vector2D::from_xy(roi.0 .0.clone(), roi.1 .1.clone());
 
         for point in waypoints.iter() {
             let _point = (point - bottom_left) / pixel_size;
             let pixel: Vector2I = Vector2I::from_xy(_point.x as i64, _point.y as i64) + margin_vec;
             match img.get_pixel_mut_checked(pixel.x as u32, pixel.y as u32) {
                 Some(px) => *px = Rgb([255, 255, 255]),
-                None => {},
+                None => {}
             };
         }
 
@@ -143,14 +152,14 @@ impl TopologyMapExporter {
         imageproc::drawing::draw_filled_circle_mut(
             img,
             (pixel1.x as i32, pixel1.y as i32),
-            1,
+            0,
             Rgb([0, 255, 0]),
         );
 
         imageproc::drawing::draw_filled_circle_mut(
             img,
             (pixel2.x as i32, pixel2.y as i32),
-            1,
+            0,
             Rgb([0, 255, 0]),
         );
     }

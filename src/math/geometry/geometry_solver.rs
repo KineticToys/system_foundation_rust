@@ -16,8 +16,8 @@ impl GeometrySolver {
     pub fn point_to_line_distance(
         &self,
         point: &Vector3D,
-        line_point_2: &Vector3D,
         line_point_1: &Vector3D,
+        line_point_2: &Vector3D,
         as_line_segment: bool,
     ) -> (f64, Vector3D) {
         let v12 = line_point_2 - line_point_1;
@@ -25,7 +25,7 @@ impl GeometrySolver {
         let u12 = v12.unit_vector();
         let v1p = point - line_point_1;
         let v1o = u12 * u12.dot(&v1p);
-        let d1o = u12.dot(&v1o);
+        let d1o = v1o.magnitude();
 
         if !as_line_segment || d1o >= 0_f64 && d1o <= d12 {
             let vpo = v1o - v1p;

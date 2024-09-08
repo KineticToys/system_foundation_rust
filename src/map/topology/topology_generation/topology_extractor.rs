@@ -1,6 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 
-use image::ColorType;
+use image::{ColorType, Rgb, RgbImage};
 use ndarray::Array2;
 
 use crate::{
@@ -35,38 +35,106 @@ static GRID_OFFSETS_RIM: [[isize; 2]; 8] = [
 pub struct TopologyExtractor {}
 
 impl TopologyExtractor {
-    pub fn new() -> Self {
-        return Self {};
-    }
-
-    pub fn extract(&self, grid_map: &GridMap) -> TopologyMap {
+    pub fn extract(grid_map: &GridMap) -> TopologyMap {
         let mut thinning = ZhangSuenThinningAlgorithm::new();
         let occupancy_map: Array2<bool> =
             grid_map.map(|cell| *cell.state() == GridMapCellState::Vacant);
         let thinned_occupancy_map: Array2<bool> = thinning.run(&occupancy_map);
-        let mut topology_map: TopologyMap = Graph::new(false, false);
+        let mut topology_map: TopologyMap = Graph::new(true, true);
         let mut bfs_queue: VecDeque<BfsData> = VecDeque::new();
 
-        self.find_nodes(&thinned_occupancy_map, &mut topology_map, &mut bfs_queue);
-        self.find_edges(&thinned_occupancy_map, &mut topology_map, &mut bfs_queue);
+        // DEBUG
+        let (map_height, map_width) = thinned_occupancy_map.dim();
+        let img: RgbImage = RgbImage::from_fn(map_width as u32, map_height as u32, |x, y| {
+            if *thinned_occupancy_map.get((y as usize, x as usize)).unwrap() {
+                return Rgb([255, 255, 255]);
+            } else {
+                return Rgb([0, 0, 0]);
+            }
+        });
+        img.save("thinned.png");
+
+        let seed_points = TopologyExtractor::find_seed_points(&thinned_occupancy_map);
+        TopologyExtractor::find_nodes(
+            &thinned_occupancy_map,
+            &seed_points,
+            &mut topology_map,
+            &mut bfs_queue,
+        );
+        TopologyExtractor::find_edges(&thinned_occupancy_map, &mut topology_map, &mut bfs_queue);
         return topology_map;
     }
 
+    fn find_seed_points(thinned_occupancy_map: &Array2<bool>) -> Vec<(usize, usize)> {
+        let (map_height, map_width) = thinned_occupancy_map.dim();
+        let mut seed_points: Vec<(usize, usize)> = Vec::new();
+        let mut unvisited_points: HashSet<(usize, usize)> = HashSet::new();
+
+        for x in 0..map_width {
+            for y in 0..map_height {
+                if *thinned_occupancy_map.get((y, x)).unwrap() {
+                    unvisited_points.insert((x, y));
+                }
+            }
+        }
+
+        while !unvisited_points.is_empty() {
+            let seed_point = unvisited_points.iter().next().unwrap().clone();
+            let mut bfs_queue: VecDeque<(usize, usize)> = VecDeque::new();
+            let mut connected_points = 0;
+            
+            unvisited_points.remove(&seed_point);
+            bfs_queue.push_back(seed_point);
+            connected_points += 1;
+
+            while !bfs_queue.is_empty() {
+                let point = bfs_queue.pop_front().unwrap();
+
+                for i in 0..GRID_OFFSETS_RIM.len() {
+                    match TopologyExtractor::get_neighboring_pos(point, (map_width, map_height), i)
+                    {
+                        Some(pos) => {
+                            if *thinned_occupancy_map.get((pos.1, pos.0)).unwrap()
+                                && unvisited_points.contains(&pos)
+                            {
+                                unvisited_points.remove(&pos);
+                                bfs_queue.push_back(pos);
+                                connected_points += 1;
+                            }
+                        }
+                        None => {}
+                    };
+                }
+            }
+
+            seed_points.push(seed_point);
+            println!("Seed Point #{}: {:?}, {} points connected.", seed_points.len(), &seed_point, connected_points);
+        }
+
+        return seed_points;
+    }
+
     fn find_nodes(
-        &self,
         thinned_occupancy_map: &Array2<bool>,
+        seed_points: &Vec<(usize, usize)>,
         topology_map: &mut TopologyMap,
         bfs_queue: &mut VecDeque<BfsData>,
     ) {
         let (map_height, map_width) = thinned_occupancy_map.dim();
 
-        for x in 1..(map_width - 1) {
-            for y in 1..(map_height - 1) {
-                if let Some(false) = thinned_occupancy_map.get((y, x)) {
-                    continue;
-                }
+        for seed_point in seed_points {
+            let mut seed_queue: VecDeque<(usize, usize)> = VecDeque::new();
+            let mut visited_points: HashSet<(usize, usize)> = HashSet::new();
+            let mut node_count = 0;
+            let mut recent_point: (usize, usize) = (0, 0);
+            seed_queue.push_back(*seed_point);
+            visited_points.insert(*seed_point);
 
+            while !seed_queue.is_empty() {
+                recent_point = seed_queue.pop_front().unwrap();
+                let (x, y) = recent_point;
                 let score = TopologyExtractor::compute_pixel_score(thinned_occupancy_map, x, y);
+
                 if score <= 1 {
                     let node_id = topology_map.add_node(TopologyNode {
                         node_type: TopologyNodeType::Endpoint,
@@ -78,6 +146,7 @@ impl TopologyExtractor {
                         prev_pos: (x, y),
                         root_node: node_id,
                     });
+                    node_count += 1;
                 } else if score >= 3 {
                     let node_id = topology_map.add_node(TopologyNode {
                         node_type: TopologyNodeType::Intersection,
@@ -88,14 +157,45 @@ impl TopologyExtractor {
                         pos: (x, y),
                         prev_pos: (x, y),
                         root_node: node_id,
-                    })
+                    });
+                    node_count += 1;
+                }
+
+                for i in 0..GRID_OFFSETS_RIM.len() {
+                    match TopologyExtractor::get_neighboring_pos((x, y), (map_width, map_height), i)
+                    {
+                        Some(neighbor_pos) => {
+                            if *thinned_occupancy_map
+                                .get((neighbor_pos.1, neighbor_pos.0))
+                                .unwrap()
+                                && !visited_points.contains(&neighbor_pos)
+                            {
+                                seed_queue.push_back(neighbor_pos);
+                                visited_points.insert(neighbor_pos);
+                            }
+                        }
+                        None => {}
+                    };
                 }
             }
+
+            if node_count > 0 {
+                continue;
+            }
+
+            let node_id = topology_map.add_node(TopologyNode {
+                node_type: TopologyNodeType::Waypoint,
+                position: Vector2D::from_xy(recent_point.0 as f64, recent_point.1 as f64),
+            });
+            bfs_queue.push_back(BfsData {
+                pos: recent_point,
+                prev_pos: recent_point,
+                root_node: node_id,
+            });
         }
     }
 
     fn find_edges(
-        &self,
         thinned_occupancy_map: &Array2<bool>,
         topology_map: &mut TopologyMap,
         bfs_queue: &mut VecDeque<BfsData>,
@@ -122,12 +222,11 @@ impl TopologyExtractor {
                 CellState::Merged => continue,
                 CellState::Visited => {
                     let this_prev_pos = data.prev_pos;
-                    let other_prev_pos = exploration_map.get((pos.1, pos.0)).unwrap().prev_pos;
                     TopologyExtractor::merge_and_add_edge(
                         topology_map,
                         &mut exploration_map,
                         this_prev_pos,
-                        other_prev_pos,
+                        pos,
                     );
                     continue;
                 }
@@ -141,36 +240,13 @@ impl TopologyExtractor {
                 }
             };
 
-            let mut visit_mask = vec![false; 8];
-
-            for i in 0..8 {
-                match TopologyExtractor::get_neighboring_pos(data.pos, (map_width, map_height), i) {
-                    Some((x, y)) => {
-                        if *thinned_occupancy_map.get((y, x)).unwrap() {
-                            *visit_mask.get_mut(i).unwrap() = true;
-                        }
-                    }
-                    None => {}
-                }
-            };
-
-            for i in 0..4 {
-                match TopologyExtractor::get_neighboring_pos(data.pos, (map_width, map_height), 2 * i) {
-                    Some((x, y)) => {
-                        if *thinned_occupancy_map.get((y, x)).unwrap() {
-                            *visit_mask.get_mut((8 + 2 * i - 1) % 8).unwrap() = false;
-                            *visit_mask.get_mut((8 + 2 * i + 1) % 8).unwrap() = false;
-                        }
-                    }
-                    None => {}
-                };
-            }
+            let visit_mask = TopologyExtractor::get_visit_mask(thinned_occupancy_map, data.pos);
 
             for neighbor in 0..GRID_OFFSETS_RIM.len() {
                 if !*visit_mask.get(neighbor).unwrap() {
                     continue;
                 }
-                
+
                 let dx = GRID_OFFSETS_RIM[neighbor][0];
                 let dy = GRID_OFFSETS_RIM[neighbor][1];
                 let x: isize = (data.pos.0 as isize + dx);
@@ -202,6 +278,36 @@ impl TopologyExtractor {
                 });
             }
         }
+    }
+
+    fn get_visit_mask(thinned_occupancy_map: &Array2<bool>, pos: (usize, usize)) -> [bool; 8] {
+        let (map_height, map_width) = thinned_occupancy_map.dim();
+        let mut visit_mask = [false; 8];
+
+        for i in 0..8 {
+            match TopologyExtractor::get_neighboring_pos(pos, (map_width, map_height), i) {
+                Some((x, y)) => {
+                    if *thinned_occupancy_map.get((y, x)).unwrap() {
+                        *visit_mask.get_mut(i).unwrap() = true;
+                    }
+                }
+                None => {}
+            }
+        }
+
+        for i in 0..4 {
+            match TopologyExtractor::get_neighboring_pos(pos, (map_width, map_height), 2 * i) {
+                Some((x, y)) => {
+                    if *thinned_occupancy_map.get((y, x)).unwrap() {
+                        *visit_mask.get_mut((8 + 2 * i - 1) % 8).unwrap() = false;
+                        *visit_mask.get_mut((8 + 2 * i + 1) % 8).unwrap() = false;
+                    }
+                }
+                None => {}
+            };
+        }
+
+        return visit_mask;
     }
 
     fn compute_pixel_score(thinned_occupancy_map: &Array2<bool>, x: usize, y: usize) -> i32 {
