@@ -3,6 +3,7 @@ use system_foundation_rust::{
         grid::grid_map::{GridMap, OccupiedRegionColor},
         io::{grid_map_exporter::GridMapExporter, topology_map_exporter::TopologyMapExporter},
         topology::topology_generation::{
+            topology_coordinate_converter::TopologyCoordinateConverter,
             topology_extractor::TopologyExtractor, topology_vectorizer::TopologyVectorizer,
         },
     },
@@ -21,6 +22,11 @@ fn main() {
         vectorized_topology_map.get_node_count(),
         vectorized_topology_map.get_edge_count(),
         node_groups.len()
+    );
+
+    let converter = TopologyCoordinateConverter::new(
+        0.004,
+        (grid_map.horizontal_cells(), grid_map.vertical_cells()),
     );
 
     GridMapExporter::export(&grid_map);
