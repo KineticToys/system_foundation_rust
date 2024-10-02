@@ -6,9 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+communication = { version = "0.1.0", path = "communication" }
+core = { version = "0.1.0", path = "core" }
+evolutionary_operation = { version = "0.1.0", path = "evolutionary_operation" }
 image = "0.25.2"
 imageproc = "0.25.0"
+map = { version = "0.1.0", path = "map" }
+math = { version = "0.1.0", path = "math" }
 ndarray = "0.15.6"
+robotics = { version = "0.1.0", path = "robotics" }
 
 [features]
 parcel = []
@@ -16,4 +22,16 @@ graph = []
 topology_extraction = ["zhang_suen_thinning", "graph"]
 zhang_suen_thinning = []
 map = ["graph"]
-all = ["parcel", "graph", "topology_extraction", "zhang_suen_thinning", "map"]
+all = ["parcel", "graph", "topology_extraction", "zhang_suen_thinning"]
+
+[workspace]
+members = [
+    "communication",
+    "core",
+    "evolutionary_operation",
+    "map",
+    "math",
+    "robotics",
+]
+
+[workspace.dependencies]
